@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard — RecruitHub{% endblock %}
+{% block page_title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+
+  <!-- ── Stat Cards ─────────────────────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(99,102,241,.15); color:#a5b4fc;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="stat-value">{{ total }}</div>
+        <div class="stat-label">Total Students</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(99,102,241,.15); color:#a5b4fc;">
+          <i class="bi bi-star-fill"></i>
+        </div>
+        <div class="stat-value">{{ new_count }}</div>
+        <div class="stat-label">New Leads</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(34,197,94,.15); color:#86efac;">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+        <div class="stat-value">{{ enrolled }}</div>
+        <div class="stat-label">Enrolled</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(239,68,68,.15); color:#fca5a5;">
+          <i class="bi bi-x-circle-fill"></i>
+        </div>
+        <div class="stat-value">{{ rejected }}</div>
+        <div class="stat-label">Rejected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Table Card ─────────────────────────────────────────────────── -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div>
+        <h2 style="font-size:1rem; font-weight:600; margin:0; color:var(--text-primary);">
+          All Students
+        </h2>
+        <p style="font-size:.75rem; color:var(--text-muted); margin:2px 0 0;">
+          {{ students|length }} result{{ students|length|pluralize }} found
+        </p>
+      </div>
+
+      <!-- Search & Filter Form -->
+      <form method="GET" action="{% url 'student_list' %}" id="filter-form"
+            style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+
+        <div class="search-input-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text"
+                 id="search-input"
+                 name="search"
+                 class="form-control"
+                 placeholder="Search by name…"
+                 value="{{ search_query }}">
+        </div>
+
+        <select name="course" id="course-filter" class="form-select" style="width:190px;">
+          <option value="">All Courses</option>
+          {% for course in all_courses %}
+            <option value="{{ course }}"
+              {% if course == course_filter %}selected{% endif %}>
+              {{ course }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <button type="submit" class="btn-brand" id="apply-filter-btn">
+          <i class="bi bi-funnel"></i> Filter
+        </button>
+
+        {% if search_query or course_filter %}
+          <a href="{% url 'student_list' %}" class="btn-outline-muted" id="clear-filter-btn">
+            <i class="bi bi-x-lg"></i> Clear
+          </a>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto;">
+      <table class="custom-table" id="students-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student</th>
+            <th>Email</th>
+            <th>Course Interest</th>
+            <th>Status</th>
+            <th>Added</th>
+            <th style="text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr id="student-row-{{ student.pk }}">
+            <td style="color:var(--text-muted); font-size:.78rem;">{{ forloop.counter }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="avatar">{{ student.name|slice:":1"|upper }}</div>
+                <span style="font-weight:500;">{{ student.name }}</span>
+              </div>
+            </td>
+            <td style="color:var(--text-muted);">{{ student.email }}</td>
+            <td>
+              <span style="background:rgba(99,102,241,.1); color:#a5b4fc;
+                           padding:3px 10px; border-radius:6px; font-size:.78rem;">
+                {{ student.course_interest }}
+              </span>
+            </td>
+            <td>
+              <span class="badge-status
+                {% if student.status == 'New' %}status-new
+                {% elif student.status == 'Contacted' %}status-contacted
+                {% elif student.status == 'Enrolled' %}status-enrolled
+                {% else %}status-rejected{% endif %}">
+                {{ student.status }}
+              </span>
+            </td>
+            <td style="color:var(--text-muted); font-size:.78rem;">
+              {{ student.created_at|date:"M d, Y" }}
+            </td>
+            <td style="text-align:center;">
+              <div style="display:flex; gap:6px; justify-content:center;">
+                <a href="{% url 'edit_student' student.pk %}"
+                   class="btn-icon"
+                   id="edit-btn-{{ student.pk }}"
+                   title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="{% url 'delete_student' student.pk %}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Delete {{ student.name }}?');">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="btn-icon danger"
+                          id="delete-btn-{{ student.pk }}"
+                          title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <i class="bi bi-inbox-fill d-block"></i>
+                <p style="font-size:.95rem; font-weight:500; margin-bottom:4px;">No students found</p>
+                <p style="font-size:.8rem;">
+                  {% if search_query or course_filter %}
+                    Try adjusting your search or filter.
+                  {% else %}
+                    <a href="{% url 'add_student' %}" style="color:var(--brand-primary);">Add your first student →</a>
+                  {% endif %}
+                </p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /table-card -->
+
+</div><!-- /page-wrapper -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Auto-submit filter when dropdown changes
+  document.getElementById('course-filter').addEventListener('change', function() {
+    document.getElementById('filter-form').submit();
+  });
+</script>
+{% endblock %}

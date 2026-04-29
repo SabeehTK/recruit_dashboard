@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — RecruitHub{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+
+  <div class="form-card">
+    <!-- Header -->
+    <div style="margin-bottom:28px;">
+      <a href="{% url 'student_list' %}" class="btn-outline-muted" id="back-btn"
+         style="margin-bottom:20px; display:inline-flex;">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+      </a>
+      <h1 style="font-size:1.4rem; font-weight:700; margin:0 0 4px; color:var(--text-primary);">
+        {{ title }}
+      </h1>
+      <p style="font-size:.85rem; color:var(--text-muted); margin:0;">
+        Fill in the details below to
+        {% if 'Edit' in title %}update the student record{% else %}register a new student{% endif %}.
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" id="student-form" novalidate>
+      {% csrf_token %}
+
+      <!-- Name -->
+      <div class="mb-4">
+        <label class="form-label" for="{{ form.name.id_for_label }}">
+          <i class="bi bi-person" style="margin-right:4px;"></i>Full Name
+        </label>
+        {{ form.name }}
+        {% if form.name.errors %}
+          <div style="color:#fca5a5; font-size:.78rem; margin-top:6px;">
+            {{ form.name.errors|join:", " }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Email -->
+      <div class="mb-4">
+        <label class="form-label" for="{{ form.email.id_for_label }}">
+          <i class="bi bi-envelope" style="margin-right:4px;"></i>Email Address
+        </label>
+        {{ form.email }}
+        {% if form.email.errors %}
+          <div style="color:#fca5a5; font-size:.78rem; margin-top:6px;">
+            {{ form.email.errors|join:", " }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Course Interest -->
+      <div class="mb-4">
+        <label class="form-label" for="{{ form.course_interest.id_for_label }}">
+          <i class="bi bi-book" style="margin-right:4px;"></i>Course Interest
+        </label>
+        {{ form.course_interest }}
+        {% if form.course_interest.errors %}
+          <div style="color:#fca5a5; font-size:.78rem; margin-top:6px;">
+            {{ form.course_interest.errors|join:", " }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Status -->
+      <div class="mb-5">
+        <label class="form-label" for="{{ form.status.id_for_label }}">
+          <i class="bi bi-tag" style="margin-right:4px;"></i>Status
+        </label>
+        {{ form.status }}
+        {% if form.status.errors %}
+          <div style="color:#fca5a5; font-size:.78rem; margin-top:6px;">
+            {{ form.status.errors|join:", " }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex; gap:12px;">
+        <button type="submit" class="btn-brand" id="submit-btn">
+          <i class="bi bi-{% if 'Edit' in title %}check-lg{% else %}person-plus{% endif %}"></i>
+          {% if 'Edit' in title %}Save Changes{% else %}Add Student{% endif %}
+        </button>
+        <a href="{% url 'student_list' %}" class="btn-outline-muted" id="cancel-btn">
+          Cancel
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Simple loading feedback on submit
+  document.getElementById('student-form').addEventListener('submit', function() {
+    const btn = document.getElementById('submit-btn');
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving…';
+    btn.style.opacity = '0.7';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}
